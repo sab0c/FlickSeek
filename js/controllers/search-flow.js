@@ -21,68 +21,6 @@ export function createSearchFlowController({
 }) {
   let activeSearchToken = 0;
 
-  function hideResults() {
-    resultsSection.element.hidden = true;
-    resultsSection.summary.textContent = "";
-    resultsSection.grid.className = "results-grid";
-    resultsSection.grid.innerHTML = "";
-  }
-
-  function renderLoadingState(query) {
-    resultsSection.element.hidden = false;
-    resultsSection.summary.textContent = `Searching for "${query}"...`;
-    resultsSection.grid.className = "results-grid results-grid--empty";
-    resultsSection.grid.innerHTML = `
-      <div class="results-section__loading-shell">
-        <div class="results-section__spinner" aria-hidden="true"></div>
-        <div class="results-section__loading-copy">
-          <strong>Loading titles</strong>
-          <span>Preparing your mock catalog.</span>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderEmptyState(query) {
-    resultsSection.element.hidden = false;
-    resultsSection.summary.textContent = `Showing 0 result(s) for "${query}".`;
-    resultsSection.grid.className = "results-grid results-grid--empty";
-    resultsSection.grid.innerHTML = `
-      <div class="results-section__loading-shell movie-card__empty movie-card__empty--neutral">
-        <div class="results-section__loading-copy">
-          <strong>No titles found</strong>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderErrorState() {
-    resultsSection.element.hidden = false;
-    resultsSection.summary.textContent = "";
-    resultsSection.grid.className = "results-grid results-grid--empty";
-    resultsSection.grid.innerHTML = `
-      <div class="results-section__loading-shell movie-card__empty movie-card__empty--error">
-        <div class="results-section__loading-copy">
-          <strong>Unable to load titles</strong>
-          <span>Try another mock search.</span>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderResults(items, query) {
-    resultsSection.element.hidden = false;
-    resultsSection.summary.textContent = `Showing ${items.length} result(s) for "${query}".`;
-    resultsSection.grid.className = "results-grid";
-    resultsSection.grid.innerHTML = "";
-
-    items.forEach((movie) => {
-      const card = createMovieCard(movie);
-      bindMovieCardToggle(card, resultsSection.grid);
-      resultsSection.grid.append(card);
-    });
-  }
-
   function resolveMockSearchState(query) {
     const normalizedQuery = normalizeText(query);
 
@@ -101,17 +39,25 @@ export function createSearchFlowController({
     return movies.filter((movie) => includesQuery(movie.title, query));
   }
 
+  function buildMovieCards(items) {
+    return items.map((movie) => {
+      const card = createMovieCard(movie);
+      bindMovieCardToggle(card, resultsSection.grid);
+      return card;
+    });
+  }
+
   function performSearch(rawQuery) {
     const query = rawQuery.trim();
     activeSearchToken += 1;
     const currentToken = activeSearchToken;
 
     if (query.length < minQueryLength) {
-      hideResults();
+      resultsSection.hide();
       return;
     }
 
-    renderLoadingState(query);
+    resultsSection.showLoading(query);
 
     window.setTimeout(() => {
       if (currentToken !== activeSearchToken) {
@@ -121,18 +67,19 @@ export function createSearchFlowController({
       const state = resolveMockSearchState(query);
 
       if (state === "error") {
-        renderErrorState();
+        resultsSection.showError();
         return;
       }
 
       const filteredMovies = filterMovies(query);
 
       if (!filteredMovies.length) {
-        renderEmptyState(query);
+        resultsSection.showEmpty(query);
         return;
       }
 
-      renderResults(filteredMovies, query);
+      const cards = buildMovieCards(filteredMovies);
+      resultsSection.showCards(cards, query);
     }, mockDelayMs);
   }
 
