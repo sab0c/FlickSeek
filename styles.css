@@ -1,0 +1,86 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  font-family: Inter, "Segoe UI", Roboto, sans-serif;
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at top, var(--color-accent-12), var(--color-transparent) 38%),
+    linear-gradient(180deg, var(--color-page-top) 0%, var(--color-page-bottom) 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: -16rem;
+  left: 50%;
+  width: min(1280px, 100vw);
+  height: 34rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 18%,
+    var(--color-white-08),
+    var(--color-accent-09) 12%,
+    var(--color-accent-06) 28%,
+    var(--color-transparent) 62%
+  );
+  filter: blur(26px);
+  opacity: 0.9;
+  z-index: -3;
+}
+
+.app {
+  position: relative;
+  isolation: isolate;
+  width: min(1120px, calc(100% - 2rem));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 3rem 0 4rem;
+}
+
+.app::before,
+.app::after {
+  content: "";
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.app::before {
+  top: -8rem;
+  width: min(1100px, 88vw);
+  height: 40rem;
+  background: radial-gradient(
+    circle at 50% 4%,
+    var(--color-white-14),
+    var(--color-accent-11) 14%,
+    var(--color-accent-07) 30%,
+    var(--color-accent-03) 48%,
+    var(--color-transparent) 76%
+  );
+  filter: blur(24px);
+  z-index: -2;
+}
+
+.app::after {
+  top: 0.15rem;
+  width: min(240px, 26vw);
+  height: 1.7rem;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    var(--color-white-46) 0%,
+    var(--color-accent-34) 40%,
+    var(--color-accent-12) 64%,
+    var(--color-transparent) 84%
+  );
+  filter: blur(16px);
+  z-index: -1;
+}

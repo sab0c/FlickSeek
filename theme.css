@@ -1,0 +1,22 @@
+:root {
+  color-scheme: dark;
+
+  --color-white: #ffffff;
+  --color-page-top: #08101c;
+  --color-page-bottom: #030712;
+  --color-text: #e2e8f0;
+
+  --color-transparent: #00000000;
+
+  --color-white-08: #ffffff14;
+  --color-white-14: #ffffff24;
+  --color-white-46: #ffffff75;
+
+  --color-accent-03: #38bdf808;
+  --color-accent-06: #38bdf80f;
+  --color-accent-07: #38bdf812;
+  --color-accent-09: #38bdf817;
+  --color-accent-11: #38bdf81c;
+  --color-accent-12: #38bdf81f;
+  --color-accent-34: #38bdf857;
+}
