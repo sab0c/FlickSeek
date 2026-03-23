@@ -14,7 +14,6 @@ export function createSearchPanel() {
 
     <div class="search-panel">
       <label class="search-panel__label" for="searchInput">Search title</label>
-
       <div class="search-panel__field">
         <input
           id="searchInput"
