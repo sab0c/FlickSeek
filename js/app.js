@@ -26,6 +26,7 @@ const searchFlow = createSearchFlowController({
   minQueryLength: MIN_QUERY_LENGTH,
   resultsBatchSize: RESULTS_BATCH_SIZE
 });
+
 resultsSection.element.hidden = true;
 
 stack.append(searchPanel.element, resultsSection.element);
