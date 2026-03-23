@@ -118,7 +118,9 @@ export async function createSearchSession(query, signal) {
         continue;
       }
 
-      const matchingItems = pageData.results.filter((item) => includesQuery(item.Title, query));
+      const matchingItems = pageData.results.filter((item) =>
+        includesQuery(item.Title, query)
+      );
 
       for (const item of matchingItems) {
         if (seenIds.has(item.imdbID)) {

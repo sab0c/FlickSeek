@@ -1,227 +1,161 @@
-import { createMovieCard } from "../components/movie-card.js";
-import { createSearchSession } from "../services/omdb-api.js";
-import { escapeHtml } from "../utils/html.js";
+import { bindMovieCardToggle, createMovieCard } from "../components/movie-card.js";
+
+function normalizeText(value = "") {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function includesQuery(title, query) {
+  return normalizeText(title).includes(normalizeText(query));
+}
 
 export function createSearchFlowController({
   searchPanel,
   resultsSection,
-  movieCardController,
+  movies,
   minQueryLength,
-  resultsBatchSize
+  resultsBatchSize,
+  mockDelayMs
 }) {
-  let latestSearchToken = 0;
-  let activeSearchController = null;
-  let currentSession = null;
+  let activeSearchToken = 0;
+  let currentResults = [];
   let visibleResults = 0;
+  let currentQuery = "";
   let loadingMore = false;
 
-  function setEmptySectionState(isEmpty) {
-    resultsSection.element.classList.toggle("results-section--empty-state", isEmpty);
-  }
+  function resolveMockSearchState(query) {
+    const normalizedQuery = normalizeText(query);
 
-  function setStatus(message, tone = "default") {
-    searchPanel.status.textContent = message;
-
-    if (tone === "default") {
-      searchPanel.status.removeAttribute("data-tone");
-      return;
+    if (!normalizedQuery) {
+      return "hidden";
     }
 
-    searchPanel.status.dataset.tone = tone;
+    if (normalizedQuery === "error") {
+      return "error";
+    }
+
+    return "results";
   }
 
-  function setSummary(message = "") {
-    resultsSection.summary.textContent = message;
+  function filterMovies(query) {
+    return movies.filter((movie) => includesQuery(movie.title, query));
   }
 
-  function setResultsVisibility(isVisible) {
-    resultsSection.element.hidden = !isVisible;
-  }
-
-  function setLoadingMore(isVisible) {
-    resultsSection.loading.hidden = !isVisible;
-  }
-
-  function renderEmptyState({
-    title = "No titles available",
-    tone = "neutral"
-  }) {
-    setEmptySectionState(true);
-    resultsSection.grid.classList.add("results-grid--empty");
-    resultsSection.grid.innerHTML = `
-      <div class="results-section__loading-shell movie-card__empty movie-card__empty--${escapeHtml(tone)}">
-        <div class="results-section__loading-copy">
-          <strong>${escapeHtml(title)}</strong>
-        </div>
-      </div>
-    `;
-  }
-
-  function appendResults(items) {
-    setEmptySectionState(false);
-    resultsSection.grid.classList.remove("results-grid--empty");
-    items.forEach((item) => {
-      const card = createMovieCard(item);
-      card.classList.add("movie-card--entering");
-      movieCardController.bindCard(card);
-      resultsSection.grid.append(card);
-
-      window.requestAnimationFrame(() => {
-        card.classList.remove("movie-card--entering");
-      });
+  function buildMovieCards(items) {
+    return items.map((movie) => {
+      const card = createMovieCard(movie);
+      bindMovieCardToggle(card, resultsSection.grid);
+      return card;
     });
   }
 
-  function updateSummary(query, meta) {
+  function updateSummary() {
+    if (!currentQuery) {
+      resultsSection.setSummary("");
+      return;
+    }
+
     if (!visibleResults) {
-      if (query) {
-        setSummary(`Showing 0 result(s) for "${query}".`);
-      } else {
-        setSummary("");
-      }
+      resultsSection.setSummary(`Showing 0 result(s) for "${currentQuery}".`);
       return;
     }
 
-    if (meta.strategy === "exact" && meta.totalResults) {
-      setSummary(`Showing ${visibleResults} of ${meta.totalResults} result(s) for "${query}".`);
-      return;
-    }
-
-    setSummary(`Showing ${visibleResults} result(s) found for "${query}".`);
+    resultsSection.setSummary(
+      `Showing ${visibleResults} of ${currentResults.length} result(s) for "${currentQuery}".`
+    );
   }
 
-  async function loadMoreResults() {
-    if (!currentSession || loadingMore) {
+  function resetSearchState() {
+    currentResults = [];
+    visibleResults = 0;
+    currentQuery = "";
+    loadingMore = false;
+    resultsSection.setLoadingMore(false);
+  }
+
+  function loadMoreResults() {
+    if (!currentResults.length || loadingMore) {
       return;
     }
 
-    const session = currentSession;
+    if (visibleResults >= currentResults.length) {
+      resultsSection.setLoadingMore(false);
+      return;
+    }
+
     loadingMore = true;
-    setLoadingMore(true);
+    resultsSection.setLoadingMore(true);
 
-    try {
-      const payload = await session.loadMore(resultsBatchSize);
+    window.setTimeout(() => {
+      const nextItems = currentResults.slice(
+        visibleResults,
+        visibleResults + resultsBatchSize
+      );
 
-      if (session !== currentSession) {
-        return;
-      }
+      const cards = buildMovieCards(nextItems);
+      resultsSection.appendCards(cards);
+      visibleResults += nextItems.length;
+      updateSummary();
 
-      const meta = session.getMeta();
-
-      if (!payload.items.length && !visibleResults) {
-        renderEmptyState({
-          title: "No titles found",
-          tone: "neutral"
-        });
-        setStatus(meta.error || "No results found.");
-        updateSummary(searchPanel.input.value.trim(), meta);
-        setLoadingMore(false);
-        if (session === currentSession) {
-          currentSession = null;
-        }
-        return;
-      }
-
-      if (payload.items.length) {
-        appendResults(payload.items);
-        visibleResults += payload.items.length;
-      }
-
-      updateSummary(searchPanel.input.value.trim(), meta);
-
-      if (meta.strategy === "exact" && meta.totalResults) {
-        setStatus(`Results updated for "${searchPanel.input.value.trim()}".`);
-      } else {
-        setStatus(`Showing matches found for "${searchPanel.input.value.trim()}".`);
-      }
-
-      if (payload.exhausted) {
-        setLoadingMore(false);
-      }
-    } catch (error) {
-      if (error.name === "AbortError") {
-        return;
-      }
-
-      if (!visibleResults) {
-        renderEmptyState({
-          title: "Unable to load titles",
-          tone: "error"
-        });
-      }
-
-      setStatus(error.message || "An unexpected error occurred.", "error");
-    } finally {
       loadingMore = false;
-
-      if (session === currentSession && currentSession) {
-        setLoadingMore(false);
-      }
-    }
+      resultsSection.setLoadingMore(visibleResults < currentResults.length);
+    }, mockDelayMs);
   }
 
-  async function performSearch(rawQuery) {
+  function performSearch(rawQuery) {
     const query = rawQuery.trim();
-    latestSearchToken += 1;
-    const searchToken = latestSearchToken;
-
-    if (activeSearchController) {
-      activeSearchController.abort();
-    }
-
-    movieCardController.closeAllDetails();
+    activeSearchToken += 1;
+    const currentToken = activeSearchToken;
 
     if (query.length < minQueryLength) {
-      setResultsVisibility(false);
-      setEmptySectionState(false);
-      setStatus(`Type at least ${minQueryLength} character to search.`);
-      setSummary("");
-      resultsSection.grid.classList.remove("results-grid--empty");
-      resultsSection.grid.innerHTML = "";
-      setLoadingMore(false);
-      currentSession = null;
-      visibleResults = 0;
+      resetSearchState();
+      resultsSection.hide();
       return;
     }
 
-    activeSearchController = new AbortController();
-    setResultsVisibility(true);
-    setStatus(`Searching for "${query}"...`);
-    setSummary("");
+    currentQuery = query;
+    currentResults = [];
     visibleResults = 0;
-    currentSession = null;
-    renderEmptyState({
-      title: "Building your catalog",
-      tone: "loading"
-    });
+    loadingMore = false;
 
-    try {
-      const session = await createSearchSession(query, activeSearchController.signal);
+    resultsSection.showLoading(query);
 
-      if (searchToken !== latestSearchToken) {
+    window.setTimeout(() => {
+      if (currentToken !== activeSearchToken) {
         return;
       }
 
-      resultsSection.grid.classList.remove("results-grid--empty");
-      resultsSection.grid.innerHTML = "";
-      currentSession = session;
-      await loadMoreResults();
-    } catch (error) {
-      if (error.name === "AbortError") {
+      const state = resolveMockSearchState(query);
+
+      if (state === "error") {
+        resetSearchState();
+        currentQuery = query;
+        resultsSection.showError();
         return;
       }
 
-      renderEmptyState({
-        title: "Unable to load titles",
-        tone: "error"
-      });
-      setSummary("");
-      setStatus(error.message || "An unexpected error occurred.", "error");
-    }
+      const filteredMovies = filterMovies(query);
+
+      if (!filteredMovies.length) {
+        resetSearchState();
+        currentQuery = query;
+        resultsSection.showEmpty(query);
+        return;
+      }
+
+      currentResults = filteredMovies;
+      visibleResults = 0;
+
+      resultsSection.resetCards();
+      loadMoreResults();
+    }, mockDelayMs);
   }
 
   return {
-    loadMoreResults,
-    performSearch
+    performSearch,
+    loadMoreResults
   };
 }
