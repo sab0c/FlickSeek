@@ -1,9 +1,9 @@
 import { createAppBrand } from "./components/app-chrome.js";
-import { createMovieCard, bindMovieCardToggle } from "./components/movie-card.js";
 import { createResultsSection } from "./components/results-section.js";
 import { createSearchPanel } from "./components/search-panel.js";
-
-const MOCK_DELAY_MS = 420;
+import { MOCK_SEARCH_DELAY_MS, MIN_QUERY_LENGTH, SEARCH_DEBOUNCE_MS } from "./config/search.js";
+import { createSearchFlowController } from "./controllers/search-flow.js";
+import { debounce } from "./utils/debounce.js";
 
 const staticMovies = [
   {
@@ -34,101 +34,6 @@ const staticMovies = [
   }
 ];
 
-let activeSearchToken = 0;
-
-function renderLoadingState(resultsSection, query) {
-  resultsSection.summary.textContent = `Searching for "${query}"...`;
-  resultsSection.grid.className = "results-grid results-grid--empty";
-  resultsSection.grid.innerHTML = `
-    <div class="results-section__loading-shell">
-      <div class="results-section__spinner" aria-hidden="true"></div>
-      <div class="results-section__loading-copy">
-        <strong>Loading titles</strong>
-        <span>Preparing your mock catalog.</span>
-      </div>
-    </div>
-  `;
-}
-
-function renderEmptyState(resultsSection, query) {
-  resultsSection.summary.textContent = `Showing 0 result(s) for "${query}".`;
-  resultsSection.grid.className = "results-grid results-grid--empty";
-  resultsSection.grid.innerHTML = `
-    <div class="results-section__loading-shell movie-card__empty movie-card__empty--neutral">
-      <div class="results-section__loading-copy">
-        <strong>No titles found</strong>
-      </div>
-    </div>
-  `;
-}
-
-function renderErrorState(resultsSection) {
-  resultsSection.summary.textContent = "";
-  resultsSection.grid.className = "results-grid results-grid--empty";
-  resultsSection.grid.innerHTML = `
-    <div class="results-section__loading-shell movie-card__empty movie-card__empty--error">
-      <div class="results-section__loading-copy">
-        <strong>Unable to load titles</strong>
-        <span>Try another mock search.</span>
-      </div>
-    </div>
-  `;
-}
-
-function renderStaticResults(resultsSection, query) {
-  resultsSection.grid.className = "results-grid";
-  resultsSection.grid.innerHTML = "";
-  resultsSection.summary.textContent = `Showing 2 result(s) for "${query}".`;
-
-  staticMovies.forEach((movie) => {
-    const card = createMovieCard(movie);
-    bindMovieCardToggle(card, resultsSection.grid);
-    resultsSection.grid.append(card);
-  });
-}
-
-function resolveMockSearchState(query) {
-  const normalizedQuery = query.trim().toLowerCase();
-
-  if (!normalizedQuery) {
-    return "hidden";
-  }
-
-  if (normalizedQuery === "error") {
-    return "error";
-  }
-
-  if (normalizedQuery === "empty" || normalizedQuery === "nada" || normalizedQuery === "zzz") {
-    return "empty";
-  }
-
-  return "results";
-}
-
-function runMockSearch(resultsSection, query, token) {
-  renderLoadingState(resultsSection, query);
-
-  window.setTimeout(() => {
-    if (token !== activeSearchToken) {
-      return;
-    }
-
-    const state = resolveMockSearchState(query);
-
-    if (state === "error") {
-      renderErrorState(resultsSection);
-      return;
-    }
-
-    if (state === "empty") {
-      renderEmptyState(resultsSection, query);
-      return;
-    }
-
-    renderStaticResults(resultsSection, query);
-  }, MOCK_DELAY_MS);
-}
-
 const app = document.querySelector("#app");
 
 if (app) {
@@ -136,21 +41,21 @@ if (app) {
   const searchPanel = createSearchPanel();
   const resultsSection = createResultsSection();
 
+  const searchFlow = createSearchFlowController({
+    searchPanel,
+    resultsSection,
+    movies: staticMovies,
+    minQueryLength: MIN_QUERY_LENGTH,
+    mockDelayMs: MOCK_SEARCH_DELAY_MS
+  });
+
+  const debouncedSearch = debounce((value) => {
+    searchFlow.performSearch(value);
+  }, SEARCH_DEBOUNCE_MS);
+
   app.append(brand, searchPanel.element, resultsSection.element);
 
   searchPanel.input.addEventListener("input", (event) => {
-    const query = event.target.value.trim();
-    activeSearchToken += 1;
-    const currentToken = activeSearchToken;
-
-    if (!query) {
-      resultsSection.element.hidden = true;
-      resultsSection.grid.innerHTML = "";
-      resultsSection.summary.textContent = "";
-      return;
-    }
-
-    resultsSection.element.hidden = false;
-    runMockSearch(resultsSection, query, currentToken);
+    debouncedSearch(event.target.value);
   });
 }
