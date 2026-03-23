@@ -7,45 +7,80 @@
 
   --color-panel: #0d192d;
   --color-panel-soft: #0a1222;
+  --color-panel-hover: #11223b;
   --color-surface: #0f172a;
   --color-surface-raised: #1e293b;
 
   --color-accent: #38bdf8;
   --color-text: #e2e8f0;
   --color-text-muted: #94a3b8;
+  --color-text-soft: #e2e8f0b8;
+  --color-text-strong: #e2e8f0db;
 
+  --color-pass: #4ade80;
+  --color-danger: #f87171;
+  --color-danger-soft: #fecaca;
+
+  --color-shadow-floating: #02061757;
   --color-shadow-panel: #0206175c;
   --color-shadow-card: #02061757;
+  --color-shadow-card-hover: #02061770;
+
   --color-transparent: #00000000;
 
   --color-white-08: #ffffff14;
   --color-white-12: #ffffff1f;
   --color-white-14: #ffffff24;
+  --color-white-28: #ffffff47;
   --color-white-46: #ffffff75;
+  --color-white-95: #fffffff2;
 
+  --color-accent-02: #38bdf805;
   --color-accent-03: #38bdf808;
   --color-accent-04: #38bdf80a;
   --color-accent-06: #38bdf80f;
   --color-accent-07: #38bdf812;
+  --color-accent-08: #38bdf814;
   --color-accent-09: #38bdf817;
   --color-accent-10: #38bdf81a;
   --color-accent-11: #38bdf81c;
   --color-accent-12: #38bdf81f;
+  --color-accent-14: #38bdf824;
   --color-accent-16: #38bdf829;
+  --color-accent-18: #38bdf82e;
   --color-accent-20: #38bdf833;
+  --color-accent-26: #38bdf842;
   --color-accent-34: #38bdf857;
+  --color-accent-35: #38bdf859;
+  --color-accent-48: #38bdf87a;
+  --color-accent-50: #38bdf880;
+  --color-accent-56: #38bdf88f;
   --color-accent-65: #38bdf8a6;
+  --color-accent-76: #38bdf8c2;
+
+  --color-page-bottom-18: #0307122e;
+  --color-page-bottom-24: #0307123d;
+  --color-page-bottom-80: #030712cc;
+  --color-page-bottom-96: #030712f5;
 
   --color-panel-88: #0d192de0;
   --color-panel-92: #0d192deb;
   --color-panel-soft-78: #0a1222c7;
+  --color-panel-hover-94: #11223bf0;
+
+  --color-surface-15: #0f172a26;
+  --color-surface-45: #0f172a73;
+  --color-surface-60: #0f172a99;
+  --color-surface-78: #0f172ac7;
+  --color-surface-88: #0f172ae0;
   --color-surface-92: #0f172aeb;
+
   --color-hero-96: #12233af5;
 
-  --color-page-bottom-18: #0307122e;
-  --color-page-bottom-24: #0307123d;
-
+  --color-border-14: #94a3b824;
   --color-border-16: #94a3b829;
   --color-border-18: #94a3b82e;
   --color-border-20: #94a3b833;
+  --color-border-22: #94a3b838;
+  --color-border-24: #94a3b83d;
 }

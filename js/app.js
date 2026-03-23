@@ -1,6 +1,8 @@
 const heroCopyText =
   "Search titles, discover details about your favorite movies, and explore your next watch like a cinematic showcase.";
 
+const MOCK_DELAY_MS = 420;
+
 const staticMovies = [
   {
     id: "tt-batman-begins",
@@ -11,7 +13,8 @@ const staticMovies = [
     rating: "8.2",
     genre: "Action, Crime, Drama",
     awards: "Nominated for an Oscar.",
-    synopsis: "After training with his mentor, Batman begins his fight to free crime-ridden Gotham City from corruption.",
+    synopsis:
+      "After training with his mentor, Batman begins his fight to free crime-ridden Gotham City from corruption.",
     posterLabel: "Batman Begins"
   },
   {
@@ -23,10 +26,13 @@ const staticMovies = [
     rating: "9.0",
     genre: "Action, Crime, Drama",
     awards: "Won 2 Oscars.",
-    synopsis: "Batman faces the Joker, a criminal mastermind who pushes Gotham into chaos and tests the limits of justice.",
+    synopsis:
+      "Batman faces the Joker, a criminal mastermind who pushes Gotham into chaos and tests the limits of justice.",
     posterLabel: "The Dark Knight"
   }
 ];
+
+let activeSearchToken = 0;
 
 function createAppBrand() {
   const brand = document.createElement("header");
@@ -145,6 +151,21 @@ function createResultsSection() {
   };
 }
 
+function closeAllCards(grid) {
+  grid.querySelectorAll(".movie-card").forEach((item) => {
+    item.classList.remove("is-active");
+
+    const itemButton = item.querySelector(".movie-card__button");
+    const itemDetails = item.querySelector(".movie-card__details");
+
+    itemButton?.setAttribute("aria-expanded", "false");
+
+    if (itemDetails) {
+      itemDetails.hidden = true;
+    }
+  });
+}
+
 function bindCardToggle(card, grid) {
   const button = card.querySelector(".movie-card__button");
   const details = card.querySelector(".movie-card__details");
@@ -156,18 +177,7 @@ function bindCardToggle(card, grid) {
   button.addEventListener("click", () => {
     const isActive = card.classList.contains("is-active");
 
-    grid.querySelectorAll(".movie-card").forEach((item) => {
-      item.classList.remove("is-active");
-
-      const itemButton = item.querySelector(".movie-card__button");
-      const itemDetails = item.querySelector(".movie-card__details");
-
-      itemButton?.setAttribute("aria-expanded", "false");
-
-      if (itemDetails) {
-        itemDetails.hidden = true;
-      }
-    });
+    closeAllCards(grid);
 
     if (isActive) {
       return;
@@ -179,7 +189,47 @@ function bindCardToggle(card, grid) {
   });
 }
 
+function renderLoadingState(resultsSection, query) {
+  resultsSection.summary.textContent = `Searching for "${query}"...`;
+  resultsSection.grid.className = "results-grid results-grid--empty";
+  resultsSection.grid.innerHTML = `
+    <div class="results-section__loading-shell">
+      <div class="results-section__spinner" aria-hidden="true"></div>
+      <div class="results-section__loading-copy">
+        <strong>Loading titles</strong>
+        <span>Preparing your mock catalog.</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderEmptyState(resultsSection, query) {
+  resultsSection.summary.textContent = `Showing 0 result(s) for "${query}".`;
+  resultsSection.grid.className = "results-grid results-grid--empty";
+  resultsSection.grid.innerHTML = `
+    <div class="results-section__loading-shell movie-card__empty movie-card__empty--neutral">
+      <div class="results-section__loading-copy">
+        <strong>No titles found</strong>
+      </div>
+    </div>
+  `;
+}
+
+function renderErrorState(resultsSection) {
+  resultsSection.summary.textContent = "";
+  resultsSection.grid.className = "results-grid results-grid--empty";
+  resultsSection.grid.innerHTML = `
+    <div class="results-section__loading-shell movie-card__empty movie-card__empty--error">
+      <div class="results-section__loading-copy">
+        <strong>Unable to load titles</strong>
+        <span>Try another mock search.</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderStaticResults(resultsSection, query) {
+  resultsSection.grid.className = "results-grid";
   resultsSection.grid.innerHTML = "";
   resultsSection.summary.textContent = `Showing 2 result(s) for "${query}".`;
 
@@ -188,6 +238,48 @@ function renderStaticResults(resultsSection, query) {
     bindCardToggle(card, resultsSection.grid);
     resultsSection.grid.append(card);
   });
+}
+
+function resolveMockSearchState(query) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return "hidden";
+  }
+
+  if (normalizedQuery === "error") {
+    return "error";
+  }
+
+  if (normalizedQuery === "empty" || normalizedQuery === "nada" || normalizedQuery === "zzz") {
+    return "empty";
+  }
+
+  return "results";
+}
+
+function runMockSearch(resultsSection, query, token) {
+  renderLoadingState(resultsSection, query);
+
+  window.setTimeout(() => {
+    if (token !== activeSearchToken) {
+      return;
+    }
+
+    const state = resolveMockSearchState(query);
+
+    if (state === "error") {
+      renderErrorState(resultsSection);
+      return;
+    }
+
+    if (state === "empty") {
+      renderEmptyState(resultsSection, query);
+      return;
+    }
+
+    renderStaticResults(resultsSection, query);
+  }, MOCK_DELAY_MS);
 }
 
 const app = document.querySelector("#app");
@@ -201,6 +293,8 @@ if (app) {
 
   searchPanel.input.addEventListener("input", (event) => {
     const query = event.target.value.trim();
+    activeSearchToken += 1;
+    const currentToken = activeSearchToken;
 
     if (!query) {
       resultsSection.element.hidden = true;
@@ -210,6 +304,6 @@ if (app) {
     }
 
     resultsSection.element.hidden = false;
-    renderStaticResults(resultsSection, query);
+    runMockSearch(resultsSection, query, currentToken);
   });
 }
