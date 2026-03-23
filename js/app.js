@@ -1,61 +1,135 @@
-import { createAppBrand } from "./components/app-chrome.js";
+import { createAppBrand, createBackToTopButton, createIntroSplash } from "./components/app-chrome.js";
+import { createMovieCardController } from "./components/movie-card.js";
 import { createResultsSection } from "./components/results-section.js";
 import { createSearchPanel } from "./components/search-panel.js";
-import { MOCK_SEARCH_DELAY_MS, MIN_QUERY_LENGTH, SEARCH_DEBOUNCE_MS } from "./config/search.js";
+import { MIN_QUERY_LENGTH, RESULTS_BATCH_SIZE, SEARCH_DEBOUNCE_MS } from "./config/search.js";
 import { createSearchFlowController } from "./controllers/search-flow.js";
 import { debounce } from "./utils/debounce.js";
 
-const staticMovies = [
-  {
-    id: "tt-batman-begins",
-    title: "Batman Begins",
-    type: "movie",
-    year: "2005",
-    runtime: "140 min",
-    rating: "8.2",
-    genre: "Action, Crime, Drama",
-    awards: "Nominated for an Oscar.",
-    synopsis:
-      "After training with his mentor, Batman begins his fight to free crime-ridden Gotham City from corruption.",
-    posterLabel: "Batman Begins"
-  },
-  {
-    id: "tt-dark-knight",
-    title: "The Dark Knight",
-    type: "movie",
-    year: "2008",
-    runtime: "152 min",
-    rating: "9.0",
-    genre: "Action, Crime, Drama",
-    awards: "Won 2 Oscars.",
-    synopsis:
-      "Batman faces the Joker, a criminal mastermind who pushes Gotham into chaos and tests the limits of justice.",
-    posterLabel: "The Dark Knight"
-  }
-];
+const HERO_COPY_TYPE_DELAY_MS = 18;
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const app = document.querySelector("#app");
+const brand = createAppBrand();
+const backToTopButton = createBackToTopButton();
+const stack = document.createElement("div");
+stack.className = "app__stack";
+const introSplash = createIntroSplash();
 
-if (app) {
-  const brand = createAppBrand();
-  const searchPanel = createSearchPanel();
-  const resultsSection = createResultsSection();
+const searchPanel = createSearchPanel();
+const resultsSection = createResultsSection();
+const movieCardController = createMovieCardController(resultsSection.grid);
+const searchFlow = createSearchFlowController({
+  searchPanel,
+  resultsSection,
+  movieCardController,
+  minQueryLength: MIN_QUERY_LENGTH,
+  resultsBatchSize: RESULTS_BATCH_SIZE
+});
+resultsSection.element.hidden = true;
 
-  const searchFlow = createSearchFlowController({
-    searchPanel,
-    resultsSection,
-    movies: staticMovies,
-    minQueryLength: MIN_QUERY_LENGTH,
-    mockDelayMs: MOCK_SEARCH_DELAY_MS
+stack.append(searchPanel.element, resultsSection.element);
+app.append(brand, stack);
+document.body.append(introSplash, backToTopButton);
+movieCardController.bindOutsideClick();
+document.body.classList.add("is-intro-locked");
+
+backToTopButton.addEventListener("click", () => {
+  window.scrollTo({
+    top: 0,
+    behavior: prefersReducedMotion ? "auto" : "smooth"
   });
+});
 
-  const debouncedSearch = debounce((value) => {
-    searchFlow.performSearch(value);
-  }, SEARCH_DEBOUNCE_MS);
+function startHeroCopyTyping() {
+  const heroCopy = searchPanel.heroCopy;
 
-  app.append(brand, searchPanel.element, resultsSection.element);
+  if (!heroCopy) {
+    return;
+  }
 
-  searchPanel.input.addEventListener("input", (event) => {
-    debouncedSearch(event.target.value);
-  });
+  const fullText = heroCopy.dataset.fullText || "";
+
+  if (prefersReducedMotion) {
+    heroCopy.textContent = fullText;
+    return;
+  }
+
+  heroCopy.textContent = "|";
+
+  let currentIndex = 0;
+
+  function typeNextCharacter() {
+    currentIndex += 1;
+    heroCopy.textContent = `${fullText.slice(0, currentIndex)}|`;
+
+    if (currentIndex < fullText.length) {
+      window.setTimeout(typeNextCharacter, HERO_COPY_TYPE_DELAY_MS);
+      return;
+    }
+
+    heroCopy.textContent = fullText;
+  }
+
+  window.setTimeout(typeNextCharacter, 140);
 }
+
+window.requestAnimationFrame(() => {
+  window.requestAnimationFrame(() => {
+    introSplash.classList.add("intro-splash--active");
+    app.classList.add("app--intro-ready");
+  });
+});
+
+window.setTimeout(() => {
+  introSplash.classList.add("intro-splash--done");
+  document.body.classList.remove("is-intro-locked");
+  startHeroCopyTyping();
+}, prefersReducedMotion ? 100 : 1800);
+
+introSplash.addEventListener("animationend", (event) => {
+  if (event.animationName === "intro-splash-out") {
+    introSplash.remove();
+  }
+});
+
+let loadMoreTimeoutId = 0;
+
+const observer = new IntersectionObserver(
+  (entries) => {
+    const [entry] = entries;
+
+    if (entry?.isIntersecting) {
+      window.clearTimeout(loadMoreTimeoutId);
+      loadMoreTimeoutId = window.setTimeout(() => {
+        searchFlow.loadMoreResults();
+      }, 180);
+    }
+  },
+  {
+    rootMargin: "80px 0px 120px 0px",
+    threshold: 0.2
+  }
+);
+
+observer.observe(resultsSection.sentinel);
+
+const backToTopObserver = new IntersectionObserver(
+  (entries) => {
+    const [entry] = entries;
+    backToTopButton.classList.toggle("back-to-top--visible", !entry?.isIntersecting);
+  },
+  {
+    threshold: 0.15
+  }
+);
+
+backToTopObserver.observe(searchPanel.element);
+
+const debouncedSearch = debounce((value) => {
+  searchFlow.performSearch(value);
+}, SEARCH_DEBOUNCE_MS);
+
+searchPanel.input.addEventListener("input", (event) => {
+  debouncedSearch(event.target.value);
+});
