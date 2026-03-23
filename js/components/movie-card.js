@@ -105,10 +105,18 @@ function renderDetails(details) {
     <div class="movie-card__details-content">
       <div class="movie-card__meta-row">
         <span class="movie-card__stat-chip movie-card__stat-chip--runtime">${escapeHtml(formatInfo(details.Runtime, "- min"))}</span>
-        <span class="movie-card__stat-chip movie-card__stat-chip--rating"><strong aria-label="IMDb rating">★</strong><span>${escapeHtml(formatInfo(details.imdbRating, "-"))}</span></span>
+        <span class="movie-card__stat-chip movie-card__stat-chip--rating">
+          <strong aria-label="IMDb rating">★</strong>
+          <span>${escapeHtml(formatInfo(details.imdbRating, "-"))}</span>
+        </span>
       </div>
+
       ${renderInfoBlock("Genre", formatInfo(details.Genre))}
-      ${hasInfo(details.Awards) ? renderInfoBlock("Awards", details.Awards) : ""}
+      ${
+        hasInfo(details.Awards)
+          ? renderInfoBlock("Awards", details.Awards)
+          : ""
+      }
       ${renderInfoBlock("Synopsis", formatInfo(details.Plot, "No description available."), "movie-card__plot")}
     </div>
   `;
@@ -121,16 +129,19 @@ function renderDetailsSkeleton() {
         <span class="movie-card__stat-chip movie-card__stat-chip--skeleton movie-card__stat-chip--runtime-skeleton"></span>
         <span class="movie-card__stat-chip movie-card__stat-chip--skeleton movie-card__stat-chip--rating-skeleton"></span>
       </div>
+
       <div class="movie-card__emphasis movie-card__emphasis--skeleton">
         <span class="skeleton skeleton--label"></span>
         <span class="skeleton skeleton--text"></span>
       </div>
+
       <div class="movie-card__emphasis movie-card__emphasis--skeleton">
         <span class="skeleton skeleton--label"></span>
         <span class="skeleton skeleton--text"></span>
         <span class="skeleton skeleton--text skeleton--text-short"></span>
       </div>
-      <div class="movie-card__emphasis movie-card__emphasis movie-card__plot movie-card__emphasis--skeleton">
+
+      <div class="movie-card__emphasis movie-card__plot movie-card__emphasis--skeleton">
         <span class="skeleton skeleton--label"></span>
         <span class="skeleton skeleton--text"></span>
         <span class="skeleton skeleton--text"></span>
@@ -144,6 +155,7 @@ export function createMovieCard(item) {
   const card = document.createElement("article");
   card.className = "movie-card";
   card.dataset.imdbId = item.imdbID;
+
   card.innerHTML = `
     <button
       class="movie-card__button"
@@ -156,11 +168,13 @@ export function createMovieCard(item) {
         <span class="movie-card__poster-vignette" aria-hidden="true"></span>
         <span class="movie-card__poster-sheen" aria-hidden="true"></span>
       </div>
+
       <div class="movie-card__body">
         <h3 class="movie-card__title">${escapeHtml(item.Title)}</h3>
         <p class="movie-card__meta">${escapeHtml(formatInfo(item.Type, "unknown"))}${hasInfo(item.Year) ? ` • ${escapeHtml(item.Year)}` : ""}</p>
       </div>
     </button>
+
     <div class="movie-card__details" hidden></div>
   `;
 
@@ -202,7 +216,11 @@ export function createMovieCardController(grid) {
     delete card.dataset.detailsLoading;
     delete card.dataset.detailsRequestId;
 
-    if (isTouchInterface.matches && document.activeElement && card.contains(document.activeElement)) {
+    if (
+      isTouchInterface.matches &&
+      document.activeElement &&
+      card.contains(document.activeElement)
+    ) {
       document.activeElement.blur();
     }
 
