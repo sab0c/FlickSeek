@@ -1,7 +1,7 @@
-import { RESULTS_BATCH_SIZE } from "../config/search.js";
-
 const API_KEY = "98d46a3";
 const API_URL = "https://www.omdbapi.com/";
+const OMDB_PAGE_SIZE = 10;
+
 const searchCache = new Map();
 const detailCache = new Map();
 const detailRequests = new Map();
@@ -28,24 +28,12 @@ async function fetchJson(url, options = {}) {
   return response.json();
 }
 
-function normalizeText(value = "") {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function includesQuery(title, query) {
-  return normalizeText(title).includes(normalizeText(query));
-}
-
-function getCacheKey(query, page) {
+function getSearchCacheKey(query, page) {
   return `${query}::${page}`;
 }
 
 async function fetchSearchPage(query, page, signal) {
-  const cacheKey = getCacheKey(query, page);
+  const cacheKey = getSearchCacheKey(query, page);
 
   if (searchCache.has(cacheKey)) {
     return searchCache.get(cacheKey);
@@ -58,15 +46,15 @@ async function fetchSearchPage(query, page, signal) {
   });
 
   const data = await fetchJson(`${API_URL}?${params.toString()}`, { signal });
+
   let payload;
 
   if (data.Response === "False") {
-    const error = mapOmdbErrorMessage(data.Error);
     payload = {
       status: "not_found",
       results: [],
       totalResults: 0,
-      error
+      error: mapOmdbErrorMessage(data.Error)
     };
   } else {
     payload = {
@@ -81,80 +69,54 @@ async function fetchSearchPage(query, page, signal) {
   return payload;
 }
 
-function getTotalPages(totalResults) {
-  return Math.max(1, Math.ceil(totalResults / RESULTS_BATCH_SIZE));
-}
-
 export async function createSearchSession(query, signal) {
-  const exactPage = await fetchSearchPage(query, 1, signal);
-  const seenIds = new Set();
-  let sources = [];
-  let strategy = "exact";
+  const firstPage = await fetchSearchPage(query, 1, signal);
+
+  let bufferedResults = [];
+  let nextPage = 1;
   let totalResults = 0;
-  let exhausted = false;
+  let totalPages = 0;
   let error = "";
 
-  if (exactPage.status === "success") {
-    sources = [
-      {
-        prefix: query,
-        page: 1
-      }
-    ];
-    totalResults = exactPage.totalResults;
+  if (firstPage.status === "success") {
+    bufferedResults = [...firstPage.results];
+    totalResults = firstPage.totalResults;
+    totalPages = Math.max(1, Math.ceil(totalResults / OMDB_PAGE_SIZE));
+    nextPage = 2;
   } else {
-    error = exactPage.error;
-    exhausted = true;
+    error = firstPage.error;
   }
 
-  async function loadMore(chunkSize = RESULTS_BATCH_SIZE) {
+  async function loadMore(batchSize = OMDB_PAGE_SIZE) {
     const items = [];
 
-    while (items.length < chunkSize && sources.length) {
-      const source = sources.shift();
-      const pageData = await fetchSearchPage(source.prefix, source.page, signal);
+    while (items.length < batchSize) {
+      while (bufferedResults.length && items.length < batchSize) {
+        items.push(bufferedResults.shift());
+      }
+
+      if (items.length === batchSize) {
+        break;
+      }
+
+      if (nextPage > totalPages) {
+        break;
+      }
+
+      const pageData = await fetchSearchPage(query, nextPage, signal);
+      nextPage += 1;
 
       if (pageData.status !== "success") {
+        error = pageData.error;
         continue;
       }
 
-      const matchingItems = pageData.results.filter((item) =>
-        includesQuery(item.Title, query)
-      );
-
-      for (const item of matchingItems) {
-        if (seenIds.has(item.imdbID)) {
-          continue;
-        }
-
-        seenIds.add(item.imdbID);
-        items.push(item);
-
-        if (items.length === chunkSize) {
-          break;
-        }
-      }
-
-      const totalPages = getTotalPages(pageData.totalResults);
-
-      if (source.page < totalPages) {
-        sources.unshift({
-          ...source,
-          page: source.page + 1
-        });
-      }
-    }
-
-    if (!sources.length) {
-      exhausted = true;
+      bufferedResults.push(...pageData.results);
     }
 
     return {
       items,
-      exhausted,
-      strategy,
-      totalResults,
-      error
+      exhausted: !bufferedResults.length && nextPage > totalPages
     };
   }
 
@@ -162,7 +124,6 @@ export async function createSearchSession(query, signal) {
     loadMore,
     getMeta() {
       return {
-        strategy,
         totalResults,
         error
       };

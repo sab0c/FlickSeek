@@ -1,161 +1,135 @@
-import { createAppBrand } from "./components/app-chrome.js";
+import { createAppBrand, createBackToTopButton, createIntroSplash } from "./components/app-chrome.js";
+import { createMovieCardController } from "./components/movie-card.js";
 import { createResultsSection } from "./components/results-section.js";
 import { createSearchPanel } from "./components/search-panel.js";
-import {
-  MIN_QUERY_LENGTH,
-  MOCK_DETAILS_DELAY_MS,
-  RESULTS_BATCH_SIZE,
-  SEARCH_DEBOUNCE_MS
-} from "./config/search.js";
+import { MIN_QUERY_LENGTH, RESULTS_BATCH_SIZE, SEARCH_DEBOUNCE_MS } from "./config/search.js";
 import { createSearchFlowController } from "./controllers/search-flow.js";
 import { debounce } from "./utils/debounce.js";
 
-const staticMovies = [
-  {
-    id: "tt-batman-begins",
-    title: "Batman Begins",
-    type: "movie",
-    year: "2005",
-    runtime: "140 min",
-    rating: "8.2",
-    genre: "Action, Crime, Drama",
-    awards: "Nominated for an Oscar.",
-    synopsis:
-      "After training with his mentor, Batman begins his fight to free crime-ridden Gotham City from corruption.",
-    posterLabel: "Batman Begins"
-  },
-  {
-    id: "tt-dark-knight",
-    title: "The Dark Knight",
-    type: "movie",
-    year: "2008",
-    runtime: "152 min",
-    rating: "9.0",
-    genre: "Action, Crime, Drama",
-    awards: "Won 2 Oscars.",
-    synopsis:
-      "Batman faces the Joker, a criminal mastermind who pushes Gotham into chaos and tests the limits of justice.",
-    posterLabel: "The Dark Knight"
-  },
-  {
-    id: "tt-batman-returns",
-    title: "Batman Returns",
-    type: "movie",
-    year: "1992",
-    runtime: "126 min",
-    rating: "7.1",
-    genre: "Action, Crime, Fantasy",
-    awards: "Nominated for 2 Oscars.",
-    synopsis:
-      "Batman faces the Penguin and Catwoman while Gotham City falls into a new wave of darkness and manipulation.",
-    posterLabel: "Batman Returns"
-  },
-  {
-    id: "tt-batman-1989",
-    title: "Batman",
-    type: "movie",
-    year: "1989",
-    runtime: "126 min",
-    rating: "7.5",
-    genre: "Action, Adventure",
-    awards: "Won 1 Oscar.",
-    synopsis:
-      "The Dark Knight of Gotham City begins his war on crime as he faces the rise of the Joker.",
-    posterLabel: "Batman"
-  },
-  {
-    id: "tt-batman-forever",
-    title: "Batman Forever",
-    type: "movie",
-    year: "1995",
-    runtime: "121 min",
-    rating: "5.4",
-    genre: "Action, Adventure",
-    awards: "Nominated for 3 Oscars.",
-    synopsis:
-      "Batman takes on Two-Face and the Riddler while wrestling with his own identity and legacy.",
-    posterLabel: "Batman Forever"
-  },
-  {
-    id: "tt-batman-robin",
-    title: "Batman & Robin",
-    type: "movie",
-    year: "1997",
-    runtime: "125 min",
-    rating: "3.8",
-    genre: "Action, Sci-Fi",
-    awards: "Nominated for 11 Razzie Awards.",
-    synopsis:
-      "Batman and Robin must stop Mr. Freeze and Poison Ivy from plunging Gotham into chaos.",
-    posterLabel: "Batman & Robin"
-  },
-  {
-    id: "tt-the-batman",
-    title: "The Batman",
-    type: "movie",
-    year: "2022",
-    runtime: "176 min",
-    rating: "7.8",
-    genre: "Action, Crime, Drama",
-    awards: "Nominated for 3 Oscars.",
-    synopsis:
-      "Batman uncovers corruption in Gotham while pursuing the Riddler, a serial killer targeting the elite.",
-    posterLabel: "The Batman"
-  },
-  {
-    id: "tt-batman-mask",
-    title: "Batman: Mask of the Phantasm",
-    type: "movie",
-    year: "1993",
-    runtime: "76 min",
-    rating: "7.8",
-    genre: "Animation, Action, Crime",
-    awards: "Critically acclaimed animated feature.",
-    synopsis:
-      "Batman investigates a mysterious vigilante while revisiting a painful chapter from Bruce Wayne's past.",
-    posterLabel: "Mask of the Phantasm"
-  }
-];
+const HERO_COPY_TYPE_DELAY_MS = 18;
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const app = document.querySelector("#app");
+const brand = createAppBrand();
+const backToTopButton = createBackToTopButton();
+const stack = document.createElement("div");
+stack.className = "app__stack";
+const introSplash = createIntroSplash();
 
-if (app) {
-  const brand = createAppBrand();
-  const searchPanel = createSearchPanel();
-  const resultsSection = createResultsSection();
+const searchPanel = createSearchPanel();
+const resultsSection = createResultsSection();
+const movieCardController = createMovieCardController(resultsSection.grid);
+const searchFlow = createSearchFlowController({
+  searchPanel,
+  resultsSection,
+  movieCardController,
+  minQueryLength: MIN_QUERY_LENGTH,
+  resultsBatchSize: RESULTS_BATCH_SIZE
+});
+resultsSection.element.hidden = true;
 
-  const searchFlow = createSearchFlowController({
-    searchPanel,
-    resultsSection,
-    movies: staticMovies,
-    minQueryLength: MIN_QUERY_LENGTH,
-    resultsBatchSize: RESULTS_BATCH_SIZE,
-    mockDelayMs: MOCK_DETAILS_DELAY_MS
+stack.append(searchPanel.element, resultsSection.element);
+app.append(brand, stack);
+document.body.append(introSplash, backToTopButton);
+movieCardController.bindOutsideClick();
+document.body.classList.add("is-intro-locked");
+
+backToTopButton.addEventListener("click", () => {
+  window.scrollTo({
+    top: 0,
+    behavior: prefersReducedMotion ? "auto" : "smooth"
   });
+});
 
-  const debouncedSearch = debounce((value) => {
-    searchFlow.performSearch(value);
-  }, SEARCH_DEBOUNCE_MS);
+function startHeroCopyTyping() {
+  const heroCopy = searchPanel.heroCopy;
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      const [entry] = entries;
+  if (!heroCopy) {
+    return;
+  }
 
-      if (entry?.isIntersecting) {
-        searchFlow.loadMoreResults();
-      }
-    },
-    {
-      rootMargin: "80px 0px 120px 0px",
-      threshold: 0.2
+  const fullText = heroCopy.dataset.fullText || "";
+
+  if (prefersReducedMotion) {
+    heroCopy.textContent = fullText;
+    return;
+  }
+
+  heroCopy.textContent = "|";
+
+  let currentIndex = 0;
+
+  function typeNextCharacter() {
+    currentIndex += 1;
+    heroCopy.textContent = `${fullText.slice(0, currentIndex)}|`;
+
+    if (currentIndex < fullText.length) {
+      window.setTimeout(typeNextCharacter, HERO_COPY_TYPE_DELAY_MS);
+      return;
     }
-  );
 
-  observer.observe(resultsSection.sentinel);
+    heroCopy.textContent = fullText;
+  }
 
-  app.append(brand, searchPanel.element, resultsSection.element);
-
-  searchPanel.input.addEventListener("input", (event) => {
-    debouncedSearch(event.target.value);
-  });
+  window.setTimeout(typeNextCharacter, 140);
 }
+
+window.requestAnimationFrame(() => {
+  window.requestAnimationFrame(() => {
+    introSplash.classList.add("intro-splash--active");
+    app.classList.add("app--intro-ready");
+  });
+});
+
+window.setTimeout(() => {
+  introSplash.classList.add("intro-splash--done");
+  document.body.classList.remove("is-intro-locked");
+  startHeroCopyTyping();
+}, prefersReducedMotion ? 100 : 1800);
+
+introSplash.addEventListener("animationend", (event) => {
+  if (event.animationName === "intro-splash-out") {
+    introSplash.remove();
+  }
+});
+
+let loadMoreTimeoutId = 0;
+
+const observer = new IntersectionObserver(
+  (entries) => {
+    const [entry] = entries;
+
+    if (entry?.isIntersecting) {
+      window.clearTimeout(loadMoreTimeoutId);
+      loadMoreTimeoutId = window.setTimeout(() => {
+        searchFlow.loadMoreResults();
+      }, 180);
+    }
+  },
+  {
+    rootMargin: "80px 0px 120px 0px",
+    threshold: 0.2
+  }
+);
+
+observer.observe(resultsSection.sentinel);
+
+const backToTopObserver = new IntersectionObserver(
+  (entries) => {
+    const [entry] = entries;
+    backToTopButton.classList.toggle("back-to-top--visible", !entry?.isIntersecting);
+  },
+  {
+    threshold: 0.15
+  }
+);
+
+backToTopObserver.observe(searchPanel.element);
+
+const debouncedSearch = debounce((value) => {
+  searchFlow.performSearch(value);
+}, SEARCH_DEBOUNCE_MS);
+
+searchPanel.input.addEventListener("input", (event) => {
+  debouncedSearch(event.target.value);
+});

@@ -16,7 +16,7 @@ export function createResultsSection() {
         <div class="results-section__spinner" aria-hidden="true"></div>
         <div class="results-section__loading-copy">
           <strong>Loading more titles</strong>
-          <span>Expanding your mock catalog.</span>
+          <span>Expanding your catalog with more matches.</span>
         </div>
       </div>
     </div>
@@ -67,7 +67,7 @@ export function createResultsSection() {
         <div class="results-section__spinner" aria-hidden="true"></div>
         <div class="results-section__loading-copy">
           <strong>Loading titles</strong>
-          <span>Preparing your mock catalog.</span>
+          <span>Preparing your catalog.</span>
         </div>
       </div>
     `;
@@ -96,7 +96,7 @@ export function createResultsSection() {
       <div class="results-section__loading-shell movie-card__empty movie-card__empty--error">
         <div class="results-section__loading-copy">
           <strong>Unable to load titles</strong>
-          <span>Try another mock search.</span>
+          <span>Try again in a moment.</span>
         </div>
       </div>
     `;
