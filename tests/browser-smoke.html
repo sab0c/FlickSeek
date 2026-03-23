@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smoke Test - FlickSeek</title>
+    <link rel="stylesheet" href="../theme.css" />
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(180deg, var(--color-page-top) 0%, var(--color-page-bottom) 100%);
+        color: var(--color-text);
+      }
+
+      .layout {
+        display: grid;
+        gap: 20px;
+      }
+
+      #results {
+        padding: 16px;
+        border: 1px solid var(--color-border-18);
+        border-radius: 12px;
+        background: var(--color-surface-92);
+      }
+
+      .pass {
+        color: var(--color-pass);
+      }
+
+      .fail {
+        color: var(--color-danger);
+      }
+
+      iframe {
+        width: 100%;
+        height: 900px;
+        border: 1px solid var(--color-border-18);
+        border-radius: 12px;
+        background: var(--color-white);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <div id="results">Running smoke test...</div>
+      <iframe id="appFrame" src="../index.html" title="Smoke test app"></iframe>
+    </div>
+
+    <script type="module">
+      const results = document.querySelector("#results");
+      const frame = document.querySelector("#appFrame");
+
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const checks = [];
+
+      function addResult(ok, message) {
+        checks.push({ ok, message });
+        results.innerHTML = checks
+          .map(
+            (item) =>
+              `<div class="${item.ok ? "pass" : "fail"}">${item.ok ? "PASSED" : "FAILED"}: ${item.message}</div>`
+          )
+          .join("");
+      }
+
+      function jsonResponse(payload, ok = true) {
+        return {
+          ok,
+          async json() {
+            return payload;
+          }
+        };
+      }
+
+      async function waitFor(predicate, { timeoutMs = 2500, intervalMs = 80 } = {}) {
+        const startedAt = Date.now();
+
+        while (Date.now() - startedAt < timeoutMs) {
+          if (predicate()) {
+            return true;
+          }
+
+          await sleep(intervalMs);
+        }
+
+        return false;
+      }
+
+      frame.addEventListener("load", async () => {
+        const win = frame.contentWindow;
+        const doc = frame.contentDocument;
+
+        win.sessionStorage.setItem("flickseek-intro-seen", "true");
+        win.matchMedia = (query) => ({
+          matches: query.includes("prefers-reduced-motion"),
+          media: query,
+          addEventListener() {},
+          removeEventListener() {},
+          addListener() {},
+          removeListener() {}
+        });
+
+        win.fetch = async (url) => {
+          const parsed = new URL(url);
+          const search = parsed.searchParams.get("s");
+          const imdbId = parsed.searchParams.get("i");
+          const page = parsed.searchParams.get("page") || "1";
+
+          if (search === "batman") {
+            return jsonResponse({
+              Response: "True",
+              totalResults: "2",
+              Search: [
+                {
+                  Title: "Batman Begins",
+                  Year: "2005",
+                  imdbID: "tt0372784",
+                  Type: "movie",
+                  Poster: "N/A"
+                },
+                {
+                  Title: "Batman Game",
+                  Year: "N/A",
+                  imdbID: "tt1877830",
+                  Type: "game",
+                  Poster: "N/A"
+                }
+              ]
+            });
+          }
+
+          if (search === "vazio") {
+            return jsonResponse({
+              Response: "False",
+              Error: "Movie not found!"
+            });
+          }
+
+          if (search === "erro") {
+            return jsonResponse({}, false);
+          }
+
+          if (search === "matrix" && page === "1") {
+            return jsonResponse({
+              Response: "True",
+              totalResults: "12",
+              Search: Array.from({ length: 10 }, (_, index) => ({
+                Title: `Matrix Test ${index + 1}`,
+                Year: `20${10 + index}`,
+                imdbID: `tt-matrix-${index + 1}`,
+                Type: "movie",
+                Poster: "N/A"
+              }))
+            });
+          }
+
+          if (search === "matrix" && page === "2") {
+            return jsonResponse({
+              Response: "True",
+              totalResults: "12",
+              Search: [
+                {
+                  Title: "Matrix Test 11",
+                  Year: "2021",
+                  imdbID: "tt-matrix-11",
+                  Type: "movie",
+                  Poster: "N/A"
+                },
+                {
+                  Title: "Matrix Test 12",
+                  Year: "2022",
+                  imdbID: "tt-matrix-12",
+                  Type: "movie",
+                  Poster: "N/A"
+                }
+              ]
+            });
+          }
+
+          if (imdbId === "tt0372784") {
+            return jsonResponse({
+              Response: "True",
+              Title: "Batman Begins",
+              Year: "2005",
+              Genre: "Action, Crime, Drama",
+              Runtime: "140 min",
+              imdbRating: "8.2",
+              Awards: "Nominated for an Oscar.",
+              Plot: "Bruce Wayne returns to Gotham.",
+              Poster: "N/A"
+            });
+          }
+
+          if (imdbId === "tt1877830") {
+            return jsonResponse({
+              Response: "True",
+              Title: "Batman Game",
+              Year: "N/A",
+              Genre: "Action",
+              Runtime: "N/A",
+              imdbRating: "N/A",
+              Awards: "N/A",
+              Plot: "N/A",
+              Poster: "N/A"
+            });
+          }
+
+          return jsonResponse({
+            Response: "False",
+            Error: "Movie not found!"
+          });
+        };
+
+        function getCards() {
+          return Array.from(doc.querySelectorAll(".movie-card"));
+        }
+
+        async function searchFor(value, waitMs = 900) {
+          const input = doc.querySelector("#searchInput");
+          input.value = value;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          await sleep(waitMs);
+        }
+
+        await sleep(300);
+
+        await searchFor("batman");
+
+        let cards = getCards();
+        addResult(cards.length >= 2, "renders cards for the main search");
+
+        const summary = doc.querySelector(".results-section__summary")?.textContent || "";
+        addResult(summary.includes("2 of 2"), "updates the exact results summary");
+
+        const placeholders = doc.querySelectorAll(".movie-card__poster--placeholder");
+        addResult(placeholders.length === 2, "shows a placeholder when the poster is unavailable");
+
+        cards[0]?.dispatchEvent(new Event("mouseenter", { bubbles: true }));
+        await sleep(260);
+
+        const firstButton = cards[0]?.querySelector(".movie-card__button");
+        const firstDetails = cards[0]?.querySelector(".movie-card__details");
+        const firstDetailsText = firstDetails?.textContent || "";
+        addResult(firstButton?.getAttribute("aria-expanded") === "true", "marks the first card as expanded");
+        addResult(firstDetails?.hidden === false && firstDetailsText.includes("140 min"), "opens details for the first card");
+        addResult(firstDetailsText.includes("140 min"), "shows the loaded detail runtime");
+        addResult(firstDetailsText.includes("Nominated for an Oscar."), "renders awards when they exist");
+
+        cards[1]?.dispatchEvent(new FocusEvent("focusin", { bubbles: true, relatedTarget: cards[1] }));
+        await sleep(260);
+
+        const secondMetaText = cards[1]?.querySelector(".movie-card__meta")?.textContent || "";
+        const secondDetails = cards[1]?.querySelector(".movie-card__details");
+        const secondDetailsText = secondDetails?.textContent || "";
+        const secondRatingValue = secondDetails?.querySelector(".movie-card__stat-chip--rating span")?.textContent?.trim() || "";
+        addResult(!secondMetaText.includes("•"), "removes the separator when the year is unavailable");
+        addResult(secondDetailsText.includes("- min"), "uses the runtime fallback when the detail has no duration");
+        addResult(secondRatingValue === "-", "uses the rating fallback when the detail has no rating");
+        addResult(secondDetailsText.includes("No description available."), "uses the synopsis fallback when the detail has no description");
+        addResult(!secondDetailsText.includes("Awards:"), "does not render the awards block when there are no awards");
+
+        cards[1]?.dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: doc.body }));
+        await sleep(220);
+        addResult(cards[1]?.querySelector(".movie-card__details")?.hidden === true, "closes card details when focus leaves");
+
+        await searchFor("vazio");
+        const emptyStateText = doc.querySelector(".movie-card__empty")?.textContent || "";
+        const emptyStatusText = doc.querySelector("#searchStatus")?.textContent || "";
+        addResult(emptyStateText.includes("No titles found"), "shows the empty state when the search has no results");
+        addResult(emptyStatusText.includes("No results found"), "updates the status when the search has no results");
+
+        await searchFor("erro");
+        const errorStateText = doc.querySelector(".movie-card__empty")?.textContent || "";
+        const statusElement = doc.querySelector("#searchStatus");
+        addResult(errorStateText.includes("Unable to load titles"), "shows the error state when the API fails");
+        addResult(statusElement?.dataset.tone === "error", "marks the status with error tone when the API fails");
+
+        await searchFor("matrix", 1000);
+        cards = getCards();
+        addResult(cards.length === 10, "loads the first batch before infinite scroll");
+
+        const matrixSummaryBeforeScroll = doc.querySelector(".results-section__summary")?.textContent || "";
+        addResult(matrixSummaryBeforeScroll.includes("10 of 12"), "summarizes the first page of the paged search correctly");
+
+        const sentinel = doc.querySelector(".results-section__sentinel");
+        sentinel?.scrollIntoView({ block: "end", behavior: "auto" });
+        win.dispatchEvent(new Event("scroll"));
+
+        const loadedMore = await waitFor(() => getCards().length === 12, {
+          timeoutMs: 2500,
+          intervalMs: 100
+        });
+
+        cards = getCards();
+        addResult(loadedMore && cards.length === 12, "loads more results when reaching the bottom of the page");
+
+        const backToTopButton = doc.querySelector(".back-to-top");
+        addResult(backToTopButton?.classList.contains("back-to-top--visible"), "shows the back-to-top button after scrolling");
+
+        const originalScrollTo = win.scrollTo.bind(win);
+        let lastScrollOptions = null;
+        win.scrollTo = (optionsOrX, maybeY) => {
+          lastScrollOptions =
+            typeof optionsOrX === "object" ? optionsOrX : { left: optionsOrX, top: maybeY };
+          originalScrollTo(optionsOrX, maybeY);
+        };
+
+        backToTopButton?.click();
+        await sleep(100);
+        addResult(lastScrollOptions?.top === 0, "scrolls back to the top when clicking the button");
+      });
+    </script>
+  </body>
+</html>
