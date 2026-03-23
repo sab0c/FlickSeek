@@ -33,13 +33,7 @@ body::before {
   height: 34rem;
   transform: translateX(-50%);
   pointer-events: none;
-  background: radial-gradient(
-    circle at 50% 18%,
-    var(--color-white-08),
-    var(--color-accent-09) 12%,
-    var(--color-accent-06) 28%,
-    var(--color-transparent) 62%
-  );
+  background: radial-gradient(circle at 50% 18%, var(--color-white-08), var(--color-accent-09) 12%, var(--color-accent-06) 28%, var(--color-transparent) 62%);
   filter: blur(26px);
   opacity: 0.9;
   z-index: -3;
@@ -135,14 +129,7 @@ input {
   top: -8rem;
   width: min(1100px, 88vw);
   height: 40rem;
-  background: radial-gradient(
-    circle at 50% 4%,
-    var(--color-white-14),
-    var(--color-accent-11) 14%,
-    var(--color-accent-07) 30%,
-    var(--color-accent-03) 48%,
-    var(--color-transparent) 76%
-  );
+  background: radial-gradient(circle at 50% 4%, var(--color-white-14), var(--color-accent-11) 14%, var(--color-accent-07) 30%, var(--color-accent-03) 48%, var(--color-transparent) 76%);
   filter: blur(24px);
   z-index: -2;
 }
@@ -152,13 +139,7 @@ input {
   width: min(240px, 26vw);
   height: 1.7rem;
   border-radius: 999px;
-  background: radial-gradient(
-    circle,
-    var(--color-white-46) 0%,
-    var(--color-accent-34) 40%,
-    var(--color-accent-12) 64%,
-    var(--color-transparent) 84%
-  );
+  background: radial-gradient(circle, var(--color-white-46) 0%, var(--color-accent-34) 40%, var(--color-accent-12) 64%, var(--color-transparent) 84%);
   filter: blur(16px);
   z-index: -1;
 }
@@ -221,13 +202,7 @@ input {
   top: -8rem;
   width: min(1000px, 90vw);
   height: 34rem;
-  background: radial-gradient(
-    circle at 50% 0%,
-    var(--color-white-28),
-    var(--color-accent-16) 16%,
-    var(--color-accent-08) 30%,
-    var(--color-transparent) 72%
-  );
+  background: radial-gradient(circle at 50% 0%, var(--color-white-28), var(--color-accent-16) 16%, var(--color-accent-08) 30%, var(--color-transparent) 72%);
   filter: blur(18px);
   opacity: 0;
 }
@@ -237,12 +212,7 @@ input {
   width: min(210px, 26vw);
   height: 1.3rem;
   border-radius: 999px;
-  background: radial-gradient(
-    circle,
-    var(--color-white-95) 0%,
-    var(--color-accent-76) 45%,
-    var(--color-transparent) 82%
-  );
+  background: radial-gradient(circle, var(--color-white-95) 0%, var(--color-accent-76) 45%, var(--color-transparent) 82%);
   filter: blur(8px);
   opacity: 0;
 }
@@ -254,13 +224,7 @@ input {
   aspect-ratio: 1;
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0.82);
-  background: radial-gradient(
-    circle,
-    var(--color-accent-16) 0%,
-    var(--color-accent-08) 28%,
-    var(--color-accent-02) 52%,
-    var(--color-transparent) 72%
-  );
+  background: radial-gradient(circle, var(--color-accent-16) 0%, var(--color-accent-08) 28%, var(--color-accent-02) 52%, var(--color-transparent) 72%);
   filter: blur(8px);
   opacity: 0;
 }
@@ -320,26 +284,9 @@ input {
 .search-shell {
   padding: 2rem;
   background:
-    radial-gradient(
-      circle at 50% -8%,
-      var(--color-white-12),
-      var(--color-accent-10) 14%,
-      var(--color-accent-04) 30%,
-      var(--color-transparent) 54%
-    ),
-    linear-gradient(
-      90deg,
-      var(--color-page-bottom-18) 0%,
-      var(--color-transparent) 18%,
-      var(--color-transparent) 82%,
-      var(--color-page-bottom-18) 100%
-    ),
-    linear-gradient(
-      180deg,
-      var(--color-hero-96) 0%,
-      var(--color-panel-92) 38%,
-      var(--color-panel-88) 100%
-    );
+    radial-gradient(circle at 50% -8%, var(--color-white-12), var(--color-accent-10) 14%, var(--color-accent-04) 30%, var(--color-transparent) 54%),
+    linear-gradient(90deg, var(--color-page-bottom-18) 0%, var(--color-transparent) 18%, var(--color-transparent) 82%, var(--color-page-bottom-18) 100%),
+    linear-gradient(180deg, var(--color-hero-96) 0%, var(--color-panel-92) 38%, var(--color-panel-88) 100%);
 }
 
 .search-shell::before,
@@ -356,21 +303,13 @@ input {
 
 .search-shell::before {
   left: -6%;
-  background: linear-gradient(
-    90deg,
-    var(--color-page-bottom-24),
-    var(--color-transparent) 68%
-  );
+  background: linear-gradient(90deg, var(--color-page-bottom-24), var(--color-transparent) 68%);
   transform: rotate(18deg);
 }
 
 .search-shell::after {
   right: -8%;
-  background: linear-gradient(
-    270deg,
-    var(--color-page-bottom-24),
-    var(--color-transparent) 72%
-  );
+  background: linear-gradient(270deg, var(--color-page-bottom-24), var(--color-transparent) 72%);
   transform: rotate(-14deg);
 }
 
@@ -457,13 +396,6 @@ input {
   padding: 1.5rem;
 }
 
-.results-section--empty-state {
-  display: flex;
-  flex-direction: column;
-  height: 227px;
-  box-sizing: border-box;
-}
-
 .results-section__head {
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-border-16);
@@ -505,7 +437,7 @@ input {
   display: grid;
   place-items: center;
   align-content: start;
-  flex: 1;
+  min-height: 220px;
   padding-top: 0;
 }
 
@@ -556,11 +488,6 @@ input {
 .results-section__loading-copy span {
   color: var(--color-text-muted);
   line-height: 1.5;
-}
-
-.movie-card__empty {
-  justify-self: center;
-  align-self: start;
 }
 
 .movie-card__empty--neutral {
@@ -798,12 +725,7 @@ input {
 .skeleton {
   display: block;
   border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    var(--color-border-20) 25%,
-    var(--color-border-24) 50%,
-    var(--color-border-20) 75%
-  );
+  background: linear-gradient(90deg, var(--color-border-20) 25%, var(--color-border-24) 50%, var(--color-border-20) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
@@ -1057,13 +979,7 @@ input {
     top: -10.5rem;
     width: min(760px, 145vw);
     height: 24rem;
-    background: radial-gradient(
-      circle at 50% 18%,
-      var(--color-white-28),
-      var(--color-accent-16) 13%,
-      var(--color-accent-08) 28%,
-      var(--color-transparent) 60%
-    );
+    background: radial-gradient(circle at 50% 18%, var(--color-white-28), var(--color-accent-16) 13%, var(--color-accent-08) 28%, var(--color-transparent) 60%);
     filter: blur(24px);
     opacity: 0.96;
   }
@@ -1077,13 +993,7 @@ input {
     top: -3.6rem;
     width: min(640px, 128vw);
     height: 18rem;
-    background: radial-gradient(
-      circle at 50% 6%,
-      var(--color-white-46),
-      var(--color-accent-16) 15%,
-      var(--color-accent-08) 30%,
-      var(--color-transparent) 68%
-    );
+    background: radial-gradient(circle at 50% 6%, var(--color-white-46), var(--color-accent-16) 15%, var(--color-accent-08) 30%, var(--color-transparent) 68%);
     filter: blur(18px);
   }
 
@@ -1091,12 +1001,7 @@ input {
     top: 0.75rem;
     width: min(180px, 42vw);
     height: 1.2rem;
-    background: radial-gradient(
-      circle,
-      var(--color-white-95) 0%,
-      var(--color-accent-76) 32%,
-      var(--color-transparent) 80%
-    );
+    background: radial-gradient(circle, var(--color-white-95) 0%, var(--color-accent-76) 32%, var(--color-transparent) 80%);
     filter: blur(12px);
   }
 
@@ -1111,26 +1016,9 @@ input {
 
   .search-shell {
     background:
-      radial-gradient(
-        circle at 50% -10%,
-        var(--color-white-28),
-        var(--color-accent-10) 13%,
-        var(--color-accent-06) 28%,
-        var(--color-transparent) 50%
-      ),
-      linear-gradient(
-        90deg,
-        var(--color-page-bottom-18) 0%,
-        var(--color-transparent) 18%,
-        var(--color-transparent) 82%,
-        var(--color-page-bottom-18) 100%
-      ),
-      linear-gradient(
-        180deg,
-        var(--color-hero-96) 0%,
-        var(--color-panel-92) 38%,
-        var(--color-panel-88) 100%
-      );
+      radial-gradient(circle at 50% -10%, var(--color-white-28), var(--color-accent-10) 13%, var(--color-accent-06) 28%, var(--color-transparent) 50%),
+      linear-gradient(90deg, var(--color-page-bottom-18) 0%, var(--color-transparent) 18%, var(--color-transparent) 82%, var(--color-page-bottom-18) 100%),
+      linear-gradient(180deg, var(--color-hero-96) 0%, var(--color-panel-92) 38%, var(--color-panel-88) 100%);
   }
 
   .search-panel {
@@ -1170,13 +1058,7 @@ input {
     top: -8.5rem;
     width: min(820px, 165vw);
     height: 22rem;
-    background: radial-gradient(
-      circle at 50% 20%,
-      var(--color-white-46),
-      var(--color-accent-16) 16%,
-      var(--color-accent-08) 30%,
-      var(--color-transparent) 60%
-    );
+    background: radial-gradient(circle at 50% 20%, var(--color-white-46), var(--color-accent-16) 16%, var(--color-accent-08) 30%, var(--color-transparent) 60%);
     filter: blur(20px);
     opacity: 1;
   }
@@ -1185,13 +1067,7 @@ input {
     top: -1.8rem;
     width: min(700px, 135vw);
     height: 14rem;
-    background: radial-gradient(
-      circle at 50% 8%,
-      var(--color-white-95),
-      var(--color-accent-34) 18%,
-      var(--color-accent-08) 34%,
-      var(--color-transparent) 66%
-    );
+    background: radial-gradient(circle at 50% 8%, var(--color-white-95), var(--color-accent-34) 18%, var(--color-accent-08) 34%, var(--color-transparent) 66%);
     filter: blur(16px);
   }
 
@@ -1199,36 +1075,14 @@ input {
     top: 1.05rem;
     width: min(220px, 48vw);
     height: 1.4rem;
-    background: radial-gradient(
-      circle,
-      var(--color-white-95) 0%,
-      var(--color-accent-76) 40%,
-      var(--color-transparent) 82%
-    );
+    background: radial-gradient(circle, var(--color-white-95) 0%, var(--color-accent-76) 40%, var(--color-transparent) 82%);
     filter: blur(10px);
   }
 
   .search-shell {
     background:
-      radial-gradient(
-        circle at 50% -2%,
-        var(--color-white-28),
-        var(--color-accent-10) 16%,
-        var(--color-accent-06) 30%,
-        var(--color-transparent) 48%
-      ),
-      linear-gradient(
-        90deg,
-        var(--color-page-bottom-18) 0%,
-        var(--color-transparent) 18%,
-        var(--color-transparent) 82%,
-        var(--color-page-bottom-18) 100%
-      ),
-      linear-gradient(
-        180deg,
-        var(--color-hero-96) 0%,
-        var(--color-panel-92) 38%,
-        var(--color-panel-88) 100%
-      );
+      radial-gradient(circle at 50% -2%, var(--color-white-28), var(--color-accent-10) 16%, var(--color-accent-06) 30%, var(--color-transparent) 48%),
+      linear-gradient(90deg, var(--color-page-bottom-18) 0%, var(--color-transparent) 18%, var(--color-transparent) 82%, var(--color-page-bottom-18) 100%),
+      linear-gradient(180deg, var(--color-hero-96) 0%, var(--color-panel-92) 38%, var(--color-panel-88) 100%);
   }
 }

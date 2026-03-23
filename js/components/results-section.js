@@ -1,16 +1,13 @@
 export function createResultsSection() {
   const element = document.createElement("section");
   element.className = "results-section app__panel";
-  element.hidden = true;
-
+  element.setAttribute("aria-label", "Results");
   element.innerHTML = `
     <header class="results-section__head">
       <span class="results-section__eyebrow">Curated catalog</span>
-      <p class="results-section__summary"></p>
+      <span id="resultsSummary" class="results-section__summary" role="status" aria-live="polite"></span>
     </header>
-
     <div class="results-grid"></div>
-
     <div class="results-section__loading" hidden>
       <div class="results-section__loading-shell">
         <div class="results-section__spinner" aria-hidden="true"></div>
@@ -20,7 +17,6 @@ export function createResultsSection() {
         </div>
       </div>
     </div>
-
     <div class="results-section__sentinel" aria-hidden="true"></div>
   `;
 
@@ -37,12 +33,12 @@ export function createResultsSection() {
     summary.textContent = message;
   }
 
-  function setGridEmptyMode(isEmpty) {
-    grid.className = isEmpty ? "results-grid results-grid--empty" : "results-grid";
-  }
-
   function setLoadingMore(isVisible) {
     loading.hidden = !isVisible;
+  }
+
+  function setGridEmptyMode(isEmpty) {
+    grid.classList.toggle("results-grid--empty", isEmpty);
   }
 
   function clearGrid() {
@@ -52,16 +48,16 @@ export function createResultsSection() {
   function hide() {
     setVisible(false);
     setSummary("");
-    setGridEmptyMode(false);
     setLoadingMore(false);
+    setGridEmptyMode(false);
     clearGrid();
   }
 
-  function showLoading(query) {
+  function showInitialLoading(query) {
     setVisible(true);
     setSummary(`Searching for "${query}"...`);
-    setGridEmptyMode(true);
     setLoadingMore(false);
+    setGridEmptyMode(true);
     grid.innerHTML = `
       <div class="results-section__loading-shell">
         <div class="results-section__spinner" aria-hidden="true"></div>
@@ -76,8 +72,8 @@ export function createResultsSection() {
   function showEmpty(query) {
     setVisible(true);
     setSummary(`Showing 0 result(s) for "${query}".`);
-    setGridEmptyMode(true);
     setLoadingMore(false);
+    setGridEmptyMode(true);
     grid.innerHTML = `
       <div class="results-section__loading-shell movie-card__empty movie-card__empty--neutral">
         <div class="results-section__loading-copy">
@@ -90,27 +86,32 @@ export function createResultsSection() {
   function showError() {
     setVisible(true);
     setSummary("");
-    setGridEmptyMode(true);
     setLoadingMore(false);
+    setGridEmptyMode(true);
     grid.innerHTML = `
       <div class="results-section__loading-shell movie-card__empty movie-card__empty--error">
         <div class="results-section__loading-copy">
           <strong>Unable to load titles</strong>
-          <span>Try again in a moment.</span>
+          <span>Try another search in a moment.</span>
         </div>
       </div>
     `;
   }
 
-  function resetCards() {
+  function showCards(cards, summaryText) {
+    setVisible(true);
+    setSummary(summaryText);
     setGridEmptyMode(false);
+    setLoadingMore(false);
     clearGrid();
+    cards.forEach((card) => grid.append(card));
   }
 
-  function appendCards(cards) {
-    cards.forEach((card) => {
-      grid.append(card);
-    });
+  function appendCards(cards, summaryText) {
+    setVisible(true);
+    setSummary(summaryText);
+    setGridEmptyMode(false);
+    cards.forEach((card) => grid.append(card));
   }
 
   return {
@@ -122,10 +123,10 @@ export function createResultsSection() {
     hide,
     setSummary,
     setLoadingMore,
-    showLoading,
+    showInitialLoading,
     showEmpty,
     showError,
-    resetCards,
+    showCards,
     appendCards
   };
 }
