@@ -1,7 +1,7 @@
 :root {
   --radius-lg: 24px;
   --radius-md: 18px;
-  --results-card-width: 246px;
+  --results-card-width: 272px;
 }
 
 * {
@@ -576,8 +576,7 @@ input {
 
 .movie-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   width: 100%;
   min-width: min(100%, var(--results-card-width));
   overflow: hidden;
@@ -649,6 +648,10 @@ input {
 .movie-card__button {
   display: flex;
   flex-direction: column;
+  grid-area: 1 / 1;
+  align-self: start;
+  position: relative;
+  z-index: 2;
   width: 100%;
   padding: 0;
   border: 0;
@@ -656,11 +659,18 @@ input {
   color: inherit;
   text-align: left;
   cursor: pointer;
+  transition:
+    opacity 280ms ease,
+    transform 320ms ease,
+    filter 280ms ease;
 }
 
 .movie-card__media {
   position: relative;
   overflow: hidden;
+  transition:
+    opacity 280ms ease,
+    transform 320ms ease;
 }
 
 .movie-card__media::after {
@@ -796,6 +806,9 @@ input {
   gap: 0.75rem;
   padding: 1.1rem 1rem 1.05rem;
   position: relative;
+  transition:
+    opacity 280ms ease,
+    transform 320ms ease;
 }
 
 .movie-card__body::after {
@@ -838,8 +851,17 @@ input {
 }
 
 .movie-card__details {
-  padding: 0 1rem 1rem;
-  overflow: hidden;
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  padding: 0;
+  overflow: visible;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition:
+    opacity 280ms ease,
+    transform 320ms ease;
 }
 
 .movie-card__details[hidden] {
@@ -848,40 +870,25 @@ input {
 
 .movie-card__details-content {
   display: grid;
-  gap: 0.9rem;
-  padding-top: 1.05rem;
-  border-top: 1px solid var(--color-border-14);
+  align-content: start;
+  gap: 0.72rem;
+  height: auto;
+  padding: 1rem 1rem 1.05rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-transparent);
+  box-shadow: none;
   animation: fade-up 220ms ease;
-}
-
-.movie-card.is-details-loaded .movie-card__details-content:not(.movie-card__details-content--loading) > * {
-  opacity: 0;
-  animation: fade-up 260ms ease forwards;
-}
-
-.movie-card.is-details-loaded .movie-card__details-content:not(.movie-card__details-content--loading) > :nth-child(1) {
-  animation-delay: 20ms;
-}
-
-.movie-card.is-details-loaded .movie-card__details-content:not(.movie-card__details-content--loading) > :nth-child(2) {
-  animation-delay: 55ms;
-}
-
-.movie-card.is-details-loaded .movie-card__details-content:not(.movie-card__details-content--loading) > :nth-child(3) {
-  animation-delay: 90ms;
-}
-
-.movie-card.is-details-loaded .movie-card__details-content:not(.movie-card__details-content--loading) > :nth-child(4) {
-  animation-delay: 125ms;
 }
 
 .movie-card__meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-top: 0.05rem;
+  gap: 0.65rem;
+  flex-wrap: nowrap;
+  margin-top: 0;
 }
 
 .movie-card__meta-row--skeleton {
@@ -976,13 +983,13 @@ input {
 }
 
 .movie-card__plot {
-  margin-top: 0.05rem;
+  margin-top: 0;
 }
 
 .movie-card__emphasis {
   display: grid;
-  gap: 0.85rem;
-  padding: 1rem 1.05rem;
+  gap: 0.72rem;
+  padding: 0.9rem 0.95rem;
   border: 1px solid var(--color-accent-20);
   border-radius: 16px;
   background:
@@ -1004,8 +1011,8 @@ input {
   align-items: center;
   justify-content: center;
   width: fit-content;
-  min-height: 1.75rem;
-  padding: 0.25rem 0.7rem;
+  min-height: 1.65rem;
+  padding: 0.22rem 0.66rem;
   border: 1px solid var(--color-accent-20);
   border-radius: 999px;
   background: linear-gradient(180deg, var(--color-accent-12) 0%, var(--color-transparent) 100%);
@@ -1038,14 +1045,14 @@ input {
 .movie-card__info-value {
   margin: 0;
   color: var(--color-text-strong);
-  line-height: 1.72;
+  line-height: 1.62;
   text-wrap: pretty;
 }
 
 .movie-card__plot .movie-card__info-value {
   color: var(--color-text);
-  line-height: 1.78;
-  max-width: 28ch;
+  line-height: 1.58;
+  max-width: none;
 }
 
 .movie-card__emphasis--skeleton {
@@ -1090,6 +1097,26 @@ input {
 
 .movie-card__error--neutral {
   color: var(--color-text-strong);
+}
+
+.movie-card.is-active .movie-card__button,
+.movie-card:focus-within .movie-card__button {
+  opacity: 0;
+  transform: scale(0.992);
+}
+
+.movie-card.is-active .movie-card__media,
+.movie-card.is-active .movie-card__body,
+.movie-card:focus-within .movie-card__media,
+.movie-card:focus-within .movie-card__body {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.movie-card.is-active .movie-card__details,
+.movie-card:focus-within .movie-card__details {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .skeleton {
