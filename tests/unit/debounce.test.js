@@ -15,13 +15,13 @@ test("debounce runs only the last call", async (t) => {
   const calls = [];
   const debounced = debounce((value) => calls.push(value), 25);
 
-  debounced("primeira");
-  debounced("segunda");
-  debounced("terceira");
+  debounced("first");
+  debounced("second");
+  debounced("third");
 
   await wait(50);
 
-  assert.deepEqual(calls, ["terceira"]);
+  assert.deepEqual(calls, ["third"]);
 });
 
 test("debounce respects the delay before executing", async (t) => {

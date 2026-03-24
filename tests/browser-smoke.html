@@ -132,14 +132,14 @@
             });
           }
 
-          if (search === "vazio") {
+          if (search === "empty") {
             return jsonResponse({
               Response: "False",
               Error: "Movie not found!"
             });
           }
 
-          if (search === "erro") {
+          if (search === "error") {
             return jsonResponse({}, false);
           }
 
@@ -266,13 +266,13 @@
         await sleep(220);
         addResult(cards[1]?.querySelector(".movie-card__details")?.hidden === true, "closes card details when focus leaves");
 
-        await searchFor("vazio");
+        await searchFor("empty");
         const emptyStateText = doc.querySelector(".movie-card__empty")?.textContent || "";
         const emptyStatusText = doc.querySelector("#searchStatus")?.textContent || "";
         addResult(emptyStateText.includes("No titles found"), "shows the empty state when the search has no results");
         addResult(emptyStatusText.includes("No results found"), "updates the status when the search has no results");
 
-        await searchFor("erro");
+        await searchFor("error");
         const errorStateText = doc.querySelector(".movie-card__empty")?.textContent || "";
         const statusElement = doc.querySelector("#searchStatus");
         addResult(errorStateText.includes("Unable to load titles"), "shows the error state when the API fails");

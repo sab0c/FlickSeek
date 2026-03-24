@@ -34,7 +34,7 @@ test("createSearchSession uses exact results and preserves totalResults", async 
       });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
@@ -66,7 +66,7 @@ test("createSearchSession returns no results when the exact search finds no matc
       return jsonResponse({ Response: "False", Error: "Movie not found!" });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
@@ -94,7 +94,7 @@ test("createSearchSession does not expand one-character queries", async (t) => {
       return jsonResponse({ Response: "False", Error: "Movie not found!" });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
@@ -138,7 +138,7 @@ test("createSearchSession removes duplicate items when loading more pages", asyn
       });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
@@ -185,7 +185,7 @@ test("createSearchSession loads multiple pages in exact search mode", async (t) 
       });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
@@ -226,7 +226,7 @@ test("createSearchSession preserves the exact search error when OMDb returns too
       return jsonResponse({ Response: "False", Error: "Too many results." });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
@@ -260,7 +260,7 @@ test("fetchTitleDetails uses cache to avoid a second request", async (t) => {
       });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
@@ -296,7 +296,7 @@ test("fetchTitleDetails reuses the same request in concurrent calls", async (t) 
       });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
@@ -324,7 +324,7 @@ test("fetchTitleDetails propagates OMDb errors when details are not found", asyn
       });
     }
 
-    throw new Error(`URL nao esperada: ${url}`);
+    throw new Error(`Unexpected URL: ${url}`);
   };
 
   t.after(() => {
