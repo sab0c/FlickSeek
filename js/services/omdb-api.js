@@ -1,6 +1,6 @@
 import { RESULTS_BATCH_SIZE } from "../config/search.js";
 
-const API_KEY = "98d46a3";
+const API_KEY = "99e12ba6";
 const API_URL = "https://www.omdbapi.com/";
 const searchCache = new Map();
 const detailCache = new Map();
