@@ -1,0 +1,14 @@
+{
+  "name": "teste",
+  "version": "1.0.0",
+  "description": "Vanilla JavaScript project for instant movie and series search using the OMDb API.",
+  "scripts": {
+    "test": "node --test",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:smoke": "node -e \"console.log('Abra tests/browser-smoke.html com o servidor local para executar o smoke test manual no navegador.')\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module"
+}
