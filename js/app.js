@@ -133,3 +133,6 @@ const debouncedSearch = debounce((value) => {
 searchPanel.input.addEventListener("input", (event) => {
   debouncedSearch(event.target.value);
 });
+
+searchPanel.input.value = "matrix";
+searchFlow.performSearch("matrix");
