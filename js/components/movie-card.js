@@ -85,6 +85,7 @@ async function hydratePoster(card, poster, title) {
     return;
   }
 
+  card.style.setProperty("--movie-card-poster-image", `url("${poster}")`);
   currentPoster.replaceWith(createPosterImageElement(poster, title));
 }
 
@@ -153,6 +154,11 @@ export function createMovieCard(item) {
   const card = document.createElement("article");
   card.className = "movie-card";
   card.dataset.imdbId = item.imdbID;
+
+  if (item.Poster && item.Poster !== "N/A") {
+    card.style.setProperty("--movie-card-poster-image", `url("${item.Poster}")`);
+  }
+
   card.innerHTML = `
     <button
       class="movie-card__button"
@@ -198,6 +204,7 @@ export function createMovieCardController(grid) {
 
     card.classList.remove("is-active");
     button?.setAttribute("aria-expanded", "false");
+    button?.blur();
 
     if (panel) {
       panel.hidden = true;

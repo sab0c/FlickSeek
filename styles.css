@@ -575,6 +575,7 @@ input {
 }
 
 .movie-card {
+  --movie-card-poster-image: none;
   position: relative;
   display: grid;
   width: 100%;
@@ -864,6 +865,23 @@ input {
     transform 320ms ease;
 }
 
+.movie-card__details::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, #030712e3 0%, #030712d9 36%, #030712cc 100%),
+    radial-gradient(circle at top center, var(--color-white-08) 0%, var(--color-transparent) 34%),
+    var(--movie-card-poster-image) center / cover no-repeat;
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 320ms ease,
+    transform 420ms ease;
+  pointer-events: none;
+}
+
 .movie-card__details[hidden] {
   display: none;
 }
@@ -873,6 +891,8 @@ input {
   align-content: start;
   gap: 0.72rem;
   height: auto;
+  position: relative;
+  z-index: 1;
   padding: 1rem 1rem 1.05rem;
   overflow: visible;
   border: 0;
@@ -1117,6 +1137,12 @@ input {
 .movie-card:focus-within .movie-card__details {
   opacity: 1;
   transform: translateY(0);
+}
+
+.movie-card.is-active .movie-card__details::before,
+.movie-card:focus-within .movie-card__details::before {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .skeleton {
