@@ -46,12 +46,14 @@
   <body>
     <div class="layout">
       <div id="results">Running smoke test...</div>
-      <iframe id="appFrame" src="../index.html" title="Smoke test app"></iframe>
+      <iframe id="appFrame" title="Smoke test app"></iframe>
     </div>
 
     <script type="module">
       const results = document.querySelector("#results");
       const frame = document.querySelector("#appFrame");
+      const smokeAssetVersion = Date.now();
+      const appBaseUrl = new URL("../", window.location.href).href;
 
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       const checks = [];
@@ -278,12 +280,24 @@
         addResult(errorStateText.includes("Unable to load titles"), "shows the error state when the API fails");
         addResult(statusElement?.dataset.tone === "error", "marks the status with error tone when the API fails");
 
-        await searchFor("matrix", 1000);
-        cards = getCards();
-        addResult(cards.length === 10, "loads the first batch before infinite scroll");
+        win.scrollTo({ top: 0, behavior: "auto" });
+        await sleep(120);
 
+        await searchFor("matrix", 40);
+
+        const firstBatchLoaded = await waitFor(() => {
+          const currentCardsCount = getCards().length;
+          const currentSummary = doc.querySelector(".results-section__summary")?.textContent || "";
+          return currentCardsCount >= 10 && currentCardsCount <= 12 && currentSummary.includes("of 12");
+        }, {
+          timeoutMs: 1200,
+          intervalMs: 50
+        });
+
+        cards = getCards();
         const matrixSummaryBeforeScroll = doc.querySelector(".results-section__summary")?.textContent || "";
-        addResult(matrixSummaryBeforeScroll.includes("10 of 12"), "summarizes the first page of the paged search correctly");
+        addResult(firstBatchLoaded && cards.length >= 10 && cards.length <= 12, "loads the first batch before infinite scroll");
+        addResult(firstBatchLoaded && matrixSummaryBeforeScroll.includes('of 12 result(s) for "matrix".'), "summarizes the first page of the paged search correctly");
 
         const sentinel = doc.querySelector(".results-section__sentinel");
         sentinel?.scrollIntoView({ block: "end", behavior: "auto" });
@@ -312,6 +326,33 @@
         await sleep(100);
         addResult(lastScrollOptions?.top === 0, "scrolls back to the top when clicking the button");
       });
+
+      frame.srcdoc = `
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+            <meta http-equiv="Pragma" content="no-cache" />
+            <meta http-equiv="Expires" content="0" />
+            <base href="${appBaseUrl}" />
+            <title>FlickSeek Smoke</title>
+            <link rel="icon" type="image/svg+xml" href="favicon.svg?smoke=${smokeAssetVersion}" />
+            <link rel="preconnect" href="https://www.omdbapi.com" />
+            <link rel="stylesheet" href="theme.css?smoke=${smokeAssetVersion}" />
+            <link rel="stylesheet" href="styles.css?smoke=${smokeAssetVersion}" />
+          </head>
+          <body>
+            <main id="app" class="app"></main>
+            <script>
+              sessionStorage.setItem("flickseek-intro-seen", "true");
+              window.__DISABLE_INITIAL_MATRIX_SEARCH__ = true;
+            <\/script>
+            <script type="module" src="js/app.js?smoke=${smokeAssetVersion}"><\/script>
+          </body>
+        </html>
+      `;
     </script>
   </body>
 </html>

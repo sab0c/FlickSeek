@@ -94,12 +94,34 @@ introSplash.addEventListener("animationend", (event) => {
 });
 
 let loadMoreTimeoutId = 0;
+let canLoadMoreFromScroll = false;
+let loadMoreScrollBaseline = 0;
+
+function resetLoadMoreGate() {
+  canLoadMoreFromScroll = false;
+  loadMoreScrollBaseline = window.scrollY;
+}
+
+function armLoadMoreGate() {
+  if (window.scrollY > loadMoreScrollBaseline + 32) {
+    canLoadMoreFromScroll = true;
+  }
+}
+
+function performSearch(value) {
+  resetLoadMoreGate();
+  searchFlow.performSearch(value);
+}
+
+window.addEventListener("scroll", armLoadMoreGate, { passive: true });
 
 const observer = new IntersectionObserver(
   (entries) => {
     const [entry] = entries;
 
-    if (entry?.isIntersecting) {
+    if (entry?.isIntersecting && canLoadMoreFromScroll && window.scrollY > loadMoreScrollBaseline + 32) {
+      canLoadMoreFromScroll = false;
+      loadMoreScrollBaseline = window.scrollY;
       window.clearTimeout(loadMoreTimeoutId);
       loadMoreTimeoutId = window.setTimeout(() => {
         searchFlow.loadMoreResults();
@@ -127,12 +149,14 @@ const backToTopObserver = new IntersectionObserver(
 backToTopObserver.observe(searchPanel.element);
 
 const debouncedSearch = debounce((value) => {
-  searchFlow.performSearch(value);
+  performSearch(value);
 }, SEARCH_DEBOUNCE_MS);
 
 searchPanel.input.addEventListener("input", (event) => {
   debouncedSearch(event.target.value);
 });
 
-searchPanel.input.value = "matrix";
-searchFlow.performSearch("matrix");
+if (!window.__DISABLE_INITIAL_MATRIX_SEARCH__) {
+  searchPanel.input.value = "matrix";
+  performSearch("matrix");
+}
